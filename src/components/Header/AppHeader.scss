@@ -5,6 +5,7 @@
   height: toRem(50px);
   background: #1a1a1a;
   border: 1px solid #383838;
+  padding: $cds-spacing-xs;
 
   h1 {
     font-size: var(--cds-font-body-size-l);

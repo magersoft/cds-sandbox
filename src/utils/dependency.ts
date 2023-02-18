@@ -78,6 +78,6 @@ export const getSupportedVueVersions = () => {
 };
 
 export const getSupportedCdsVersions = () => {
-  const versions = $(getVersions('@central-design-system/components'));
-  return computed(() => versions.filter((version) => compare(version, '3.0.0', '>=')));
+  const versions = getVersions('@central-design-system/components');
+  return computed(() => versions.value.filter((version) => compare(version, '3.0.0', '>=')));
 };

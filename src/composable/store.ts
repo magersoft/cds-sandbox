@@ -11,7 +11,7 @@ import type { IInitial, IUseStore, IUserOptions, TSerializeState, TVersionKey } 
 import type { StoreState, Store } from '@vue/repl';
 import type { IImportMap } from '@/utils';
 
-export const useStore = (initial: IInitial): IUseStore => {
+export const useStore = (initial: IInitial) => {
   let compiler = $(shallowRef<typeof import('vue/compiler-sfc')>());
   let userOptions = $ref<IUserOptions>(initial.userOptions || {});
 

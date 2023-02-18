@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import CdsComponents from '@central-design-system/components';
-import CdsIcon from '@central-design-system/components';
+import CdsIcon from '@central-design-system/icons';
 
 import './assets/main.scss';
 import '@vue/repl/style.css';
