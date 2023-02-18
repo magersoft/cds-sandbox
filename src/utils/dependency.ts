@@ -1,0 +1,81 @@
+import { useLocalStorage, useFetch } from '@vueuse/core';
+import { computed, unref } from 'vue';
+import { compare } from 'compare-versions';
+
+import type { IImportMap } from '@/utils/import-map';
+import type { TVersions } from '@/composable/store.d';
+import type { MaybeRef } from '@vueuse/core';
+import type { Ref } from 'vue';
+
+export interface IDependency {
+  pkg?: string;
+  version?: string;
+  path: string;
+}
+
+export type Cdn = 'unpkg' | 'jsdelivr' | 'jsdelivr-fastly';
+export const cdn = useLocalStorage<Cdn>('setting-cdn', 'jsdelivr-fastly');
+
+export const getCdnLink = (pkg: string, version: string | undefined, path: string): string => {
+  version = version ? `@${version}` : '';
+  switch (cdn.value) {
+    case 'jsdelivr':
+      return `https://cdn.jsdelivr.net/npm/${pkg}${version}${path}`;
+    case 'jsdelivr-fastly':
+      return `https://fastly.jsdelivr.net/npm/${pkg}${version}${path}`;
+    case 'unpkg':
+      return `https://unpkg.com/${pkg}${version}${path}`;
+  }
+};
+
+export const getVueLink = (version: string): Record<string, string> => ({
+  compilerSfc: getCdnLink('@vue/compiler-sfc', version, '/dist/compiler-sfc.esm-browser.js'),
+  runtimeDom: getCdnLink('@vue/runtime-dom', version, '/dist/runtime-dom.esm-browser.js')
+});
+
+export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): IImportMap => {
+  const dependencies: Record<string, IDependency> = {
+    vue: {
+      pkg: '@vue/runtime-dom',
+      version: vue,
+      path: '/dist/runtime-dom.esm-browser.js'
+    },
+    '@vue/shared': {
+      version: vue,
+      path: '/dist/shared.esm-bundler.js'
+    },
+    '@central-design-system/components': {
+      pkg: '@central-design-system/components',
+      version: cds,
+      path: '/dist/cds.es.js'
+    },
+    '@central-design-system/icons': {
+      pkg: '@central-design-system/icons',
+      version: '3',
+      path: '/dist/cds-icons.es.js'
+    }
+  };
+
+  return {
+    imports: Object.fromEntries(Object.entries(dependencies).map(([key, dep]) => [key]))
+  };
+};
+
+export const getVersions = (pkg: MaybeRef<string>) => {
+  const url = computed(() => `https://data.jsdelivr.com/v1/package/npm/${unref(pkg)}`);
+  return useFetch(url, {
+    initialData: [],
+    afterFetch: (ctx) => ((ctx.data = ctx.data.versions), ctx),
+    refetch: true
+  }).json<string[]>().data as Ref<string[]>;
+};
+
+export const getSupportedVueVersions = () => {
+  const versions = $(getVersions('vue'));
+  return computed(() => versions.filter((version) => compare(version, '3.2.0', '>=')));
+};
+
+export const getSupportedCdsVersions = () => {
+  const versions = $(getVersions('@central-design-system/components'));
+  return computed(() => versions.filter((version) => compare(version, '3.0.0', '>=')));
+};
