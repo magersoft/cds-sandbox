@@ -15,7 +15,7 @@ export const useStore = (initial: IInitial): IUseStore => {
   let compiler = $(shallowRef<typeof import('vue/compiler-sfc')>());
   let userOptions = $ref<IUserOptions>(initial.userOptions || {});
 
-  const versions = reactive(initial.versions || { vue: 'latest', cds: 'latest' });
+  const versions = reactive(initial.versions || { vue: config.VUE_VERSION, cds: config.CDS_VERSION });
   const hideFile = $computed(() => !config.IS_DEV && !userOptions.showHidden);
 
   const files = initFiles(initial.serializedState || '');
@@ -83,14 +83,14 @@ export const useStore = (initial: IInitial): IUseStore => {
     { immediate: true }
   );
 
-  function generateCdsCode(version: string, stylesSource?: string) {
+  function generateCdsCode(version: string, stylesSource?: string): string {
     const style = stylesSource
       ? stylesSource.replace('#VERSION#', version)
       : getCdnLink('@central-design-system/components', version, '/dist/cds.css');
     return cdsSetupTemplate.replace('#STYLE#', style);
   }
 
-  async function setVueVersion(version: string) {
+  async function setVueVersion(version: string): Promise<void> {
     const { compilerSfc, runtimeDom } = getVueLink(version);
 
     compiler = await import(/* @vite-ignore */ compilerSfc);
@@ -100,7 +100,7 @@ export const useStore = (initial: IInitial): IUseStore => {
     console.info(`[@vue/repl] Vue version set to ${version}]`);
   }
 
-  async function init() {
+  async function init(): Promise<void> {
     await setVueVersion(versions.vue);
 
     for (const file of Object.values(state.files)) {
@@ -110,7 +110,7 @@ export const useStore = (initial: IInitial): IUseStore => {
     watchEffect(() => compileFile(store, state.activeFile));
   }
 
-  function getFiles() {
+  function getFiles(): Record<string, string> {
     const exported: Record<string, string> = {};
     for (const file of Object.values(state.files)) {
       if (file.hidden) continue;
@@ -119,7 +119,7 @@ export const useStore = (initial: IInitial): IUseStore => {
     return exported;
   }
 
-  function serialize() {
+  function serialize(): string {
     const state: TSerializeState = { ...getFiles() };
     state._o = userOptions;
     return utoa(JSON.stringify(state));
@@ -129,7 +129,7 @@ export const useStore = (initial: IInitial): IUseStore => {
     return JSON.parse(atou(str));
   }
 
-  function initFiles(serializedState: string) {
+  function initFiles(serializedState: string): StoreState['files'] {
     const files: StoreState['files'] = {};
 
     if (serializedState) {
@@ -154,19 +154,19 @@ export const useStore = (initial: IInitial): IUseStore => {
     return files;
   }
 
-  function setActive(filename: string) {
+  function setActive(filename: string): void {
     const file = state.files[filename];
     if (file.hidden) return;
     state.activeFile = file;
   }
 
-  function addFile(fileOrFilename: string | File) {
+  function addFile(fileOrFilename: string | File): void {
     const file = typeof fileOrFilename === 'string' ? new File(fileOrFilename) : fileOrFilename;
     state.files[file.filename] = file;
     setActive(file.filename);
   }
 
-  async function deleteFile(filename: string) {
+  async function deleteFile(filename: string): Promise<void> {
     const configFiles = [config.MAIN_FILE, config.APP_FILE, config.CDS_FILE, config.USER_IMPORT_MAP, config.IMPORT_MAP];
 
     if (configFiles.includes(filename)) {
@@ -182,11 +182,11 @@ export const useStore = (initial: IInitial): IUseStore => {
     }
   }
 
-  function getImportMap() {
+  function getImportMap(): IImportMap {
     return importMap;
   }
 
-  async function setVersion(key: TVersionKey, version: string) {
+  async function setVersion(key: TVersionKey, version: string): Promise<void> {
     switch (key) {
       case 'cds':
         await setCdsVersion(version);
@@ -197,7 +197,7 @@ export const useStore = (initial: IInitial): IUseStore => {
     }
   }
 
-  function setCdsVersion(version: string) {
+  function setCdsVersion(version: string): void {
     versions.cds = version;
   }
 

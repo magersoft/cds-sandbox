@@ -51,13 +51,15 @@ export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): IImpor
     },
     '@central-design-system/icons': {
       pkg: '@central-design-system/icons',
-      version: '3',
+      version: '1',
       path: '/dist/cds-icons.es.js'
     }
   };
 
   return {
-    imports: Object.fromEntries(Object.entries(dependencies).map(([key, dep]) => [key]))
+    imports: Object.fromEntries(
+      Object.entries(dependencies).map(([key, dep]) => [key, getCdnLink(dep.pkg ?? key, dep.version, dep.path)])
+    )
   };
 };
 

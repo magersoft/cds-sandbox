@@ -24,8 +24,8 @@ export type TSerializeState = Record<string, string> & {
 export interface IUseStore extends Store {
   versions: TVersions;
   userOptions: Ref<{ styleSource?: string | undefined, showHidden?: boolean | undefined }>;
-  init: () => void;
-  serialize: () => string;
-  setVersion: (key: TVersionsKey, version: string) => void;
+  init(): Promise<void>;
+  serialize(): string;
+  setVersion(key: TVersionsKey, version: string): Promise<void>;
   pr?: string | null;
 }
