@@ -19,7 +19,8 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
-    "predeploy": "bumpp && npm run build && npm run deploy",
+    "release": "bumpp",
+    "predeploy": "npm run build && npm run deploy",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
