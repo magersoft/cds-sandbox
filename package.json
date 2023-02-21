@@ -1,6 +1,6 @@
 {
   "name": "cds-sandbox",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Central Design System Sandbox",
   "author": "magersoft",
   "keywords": [
@@ -19,8 +19,7 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
-    "release": "bumpp",
-    "predeploy": "npm run build && npm run deploy",
+    "predeploy": "npm run build && bumpp",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
