@@ -12,6 +12,7 @@ export default defineConfig(async () => {
   const repl = await getPackageInfo('@vue/repl');
 
   return {
+    base: '/<repo>/',
     server: {
       https: true,
       host: true
