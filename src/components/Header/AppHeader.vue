@@ -74,7 +74,7 @@ function handleGithub() {
         <select
           :name="versions.cds.text"
           id="versionVue"
-          @change="(event) => handleSetVersion('cds', event.target.value)"
+          @change="(event) => handleSetVersion('cds', event.target?.value)"
         >
           <option :value="versions.cds.active">{{ versions.cds.active }}</option>
           <option v-for="version in versions.cds.published" :key="version" :value="version">{{ version }}</option>
@@ -83,7 +83,7 @@ function handleGithub() {
         <select
           :name="versions.vue.text"
           id="versionVue"
-          @change="(event) => handleSetVersion('vue', event.target.value)"
+          @change="(event) => handleSetVersion('vue', event.target?.value)"
         >
           <option :value="versions.vue.active">{{ versions.vue.active }}</option>
           <option v-for="version in versions.vue.published" :key="version" :value="version">{{ version }}</option>
