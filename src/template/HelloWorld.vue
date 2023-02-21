@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref, version as vueVersion } from 'vue';
 
-const msg = ref('Hello World!');
+const msg = ref('Central Design System 3.0');
 </script>
 
 <template>
-  <h1>{{ msg }}</h1>
+  <div class="cds-pa-m">
+    <h1>{{ msg }}</h1>
+    <p>A Vue.js 3 Design System Library</p>
 
-  <p>Cds Components 3.0 + Vue {{ vueVersion }}</p>
-  <cds-button>Button</cds-button>
+    <p class="cds-my-m">CDS v3.0 + Vue v{{ vueVersion }}</p>
+    <cds-button class="cds-mr-xs">Getting started</cds-button>
+    <cds-button appearance="secondary">Documentation</cds-button>
+  </div>
 </template>

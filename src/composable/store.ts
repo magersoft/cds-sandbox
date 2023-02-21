@@ -7,7 +7,7 @@ import helloWorldTemplate from '@/template/HelloWorld.vue?raw';
 import mainTemplate from '@/template/Main.vue?raw';
 import cdsSetupTemplate from '@/template/cds-setup.js?raw';
 
-import type { IInitial, IUseStore, IUserOptions, TSerializeState, TVersionKey } from './store.d';
+import type { IInitial, IUserOptions, TSerializeState, TVersionKey } from './store.d';
 import type { StoreState, Store } from '@vue/repl';
 import type { IImportMap } from '@/utils';
 

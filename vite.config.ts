@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { getPackageInfo } from 'local-pkg';
+import SvgLoader from 'vite-svg-loader';
 import pkg from './package.json';
 
 import { defineConfig } from 'vite';
@@ -36,7 +37,8 @@ export default defineConfig(async () => {
         reactivityTransform: true
       }),
       Mkcert(),
-      Inspect()
+      Inspect(),
+      SvgLoader()
     ]
   };
 });

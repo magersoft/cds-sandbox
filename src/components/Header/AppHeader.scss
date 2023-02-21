@@ -7,7 +7,42 @@
   border: 1px solid #383838;
   padding: $cds-spacing-xs;
 
-  h1 {
-    font-size: var(--cds-font-body-size-l);
+  .logo {
+    display: flex;
+    align-items: center;
+    margin-right: $cds-spacing-xs;
+  }
+
+  .title {
+    font-size: var(--cds-font-heading-4);
+    color: var(--cds-color-text-inverse);
+    margin-right: $cds-spacing-m;
+  }
+
+  .tags {
+    .cds-tag {
+      margin-right: $cds-spacing-xs;
+      color: var(--cds-color-text-primary);
+      font-size: var(--cds-font-body-size-xs);
+    }
+  }
+
+  .versions {
+    select {
+      margin-right: $cds-spacing-xs;
+    }
+  }
+
+  .actions {
+    button {
+      margin-left: $cds-spacing-xs;
+      border: none;
+    }
+
+    .svg-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
   }
 }
