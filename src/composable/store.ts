@@ -6,6 +6,7 @@ import config from '@/config';
 import helloWorldTemplate from '@/template/HelloWorld.vue?raw';
 import mainTemplate from '@/template/Main.vue?raw';
 import cdsSetupTemplate from '@/template/cds-setup.js?raw';
+import stylesTemplate from '@/template/styles.css?raw';
 
 import type { IInitial, IUserOptions, TSerializeState, TVersionKey } from './store.d';
 import type { StoreState, Store } from '@vue/repl';
@@ -146,6 +147,7 @@ export const useStore = (initial: IInitial) => {
     }
 
     files[config.MAIN_FILE] = new File(config.MAIN_FILE, mainTemplate, hideFile);
+    files[config.STYLES_FILE] = new File(config.STYLES_FILE, stylesTemplate, hideFile);
 
     if (!files[config.USER_IMPORT_MAP]) {
       files[config.USER_IMPORT_MAP] = new File(config.USER_IMPORT_MAP, JSON.stringify({ imports: {} }, undefined, 2));
