@@ -13,11 +13,12 @@ export interface IDependency {
   path: string;
 }
 
-export type Cdn = 'unpkg' | 'jsdelivr' | 'jsdelivr-fastly';
-export const cdn = useLocalStorage<Cdn>('setting-cdn', 'jsdelivr-fastly');
+export type Cdn = 'unpkg' | 'jsdelivr' | 'jsdelivr-fastly' | 'local';
+export const cdn = useLocalStorage<Cdn>('setting-cdn', 'local');
 
 export const getCdnLink = (pkg: string, version: string | undefined, path: string): string => {
   version = version ? `@${version}` : '';
+
   switch (cdn.value) {
     case 'jsdelivr':
       return `https://cdn.jsdelivr.net/npm/${pkg}${version}${path}`;
@@ -25,6 +26,8 @@ export const getCdnLink = (pkg: string, version: string | undefined, path: strin
       return `https://fastly.jsdelivr.net/npm/${pkg}${version}${path}`;
     case 'unpkg':
       return `https://unpkg.com/${pkg}${version}${path}`;
+    case 'local':
+      return `${import.meta.env.VITE_LOCAL_CDN_URL}/npm/${pkg}${version}${path}`;
   }
 };
 

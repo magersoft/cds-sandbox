@@ -10,12 +10,14 @@ import Inspect from 'vite-plugin-inspect';
 
 export default defineConfig(async () => {
   const repl = await getPackageInfo('@vue/repl');
+  const port = Number(process.env.PORT) || 3001;
 
   return {
     base: './',
     server: {
       https: true,
-      host: true
+      host: true,
+      port
     },
     define: {
       'import.meta.env.APP_VERSION': JSON.stringify(pkg.version),

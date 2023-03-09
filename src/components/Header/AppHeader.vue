@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { usePrettier } from '@/composable/prettier';
 import { reactive } from 'vue';
-import { getSupportedCdsVersions, getSupportedVueVersions } from '@/utils';
+import { cdn, getSupportedCdsVersions, getSupportedVueVersions } from '@/utils';
 
 import cdsLogo from '../../assets/logo.svg?raw';
 import githubSvg from '../../assets/icons/github.svg?raw';
@@ -9,6 +9,7 @@ import githubSvg from '../../assets/icons/github.svg?raw';
 import type { ReplStore } from '@/composable';
 import type { ComputedRef } from 'vue';
 import type { TVersionKey } from '@/composable/store.d';
+import config from '@/config';
 
 const appVersion = import.meta.env.APP_VERSION;
 const replVersion = import.meta.env.REPL_VERSION;
@@ -87,6 +88,13 @@ function handleGithub() {
         >
           <option :value="versions.vue.active">{{ versions.vue.active }}</option>
           <option v-for="version in versions.vue.published" :key="version" :value="version">{{ version }}</option>
+        </select>
+        CDN:
+        <select name="CDN" id="CDN" v-model="cdn">
+          <option value="jsdelivr">jsDelivr</option>
+          <option value="jsdelivr-fastly">jsDelivr Fastly</option>
+          <option value="unpkg">unpkg</option>
+          <option v-if="config.IS_DEV" value="local">local</option>
         </select>
       </div>
       <div class="actions">
