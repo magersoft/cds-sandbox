@@ -47,6 +47,26 @@ export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): IImpor
       version: vue,
       path: '/dist/shared.esm-bundler.js'
     },
+    '@vue/devtools-api': {
+      version: '6',
+      path: '/lib/esm/index.js'
+    },
+    'vee-validate': {
+      version: '4',
+      path: '/dist/vee-validate.esm.js'
+    },
+    '@vuelidate/core': {
+      version: '2',
+      path: '/dist/index.esm.js'
+    },
+    '@vuelidate/validators': {
+      version: '2',
+      path: '/dist/index.esm.js'
+    },
+    'vue-demi': {
+      version: '0.13.11',
+      path: '/lib/index.mjs'
+    },
     '@central-design-system/components': {
       pkg: '@central-design-system/components',
       version: cds,
