@@ -67,6 +67,10 @@ export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): IImpor
       version: '0.13.11',
       path: '/lib/index.mjs'
     },
+    maska: {
+      version: '2.1.9',
+      path: '/dist/maska.js'
+    },
     '@central-design-system/components': {
       pkg: '@central-design-system/components',
       version: cds,
