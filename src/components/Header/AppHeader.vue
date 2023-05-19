@@ -37,7 +37,11 @@ const versions = reactive<Record<TVersionKey, IVersion>>({
   }
 });
 
-const cdnList = ['jsdelivr', 'jsdelivr-fastly', 'unpkg', config.IS_DEV && 'local'];
+const cdnList = ['jsdelivr', 'jsdelivr-fastly', 'unpkg'];
+
+if (config.IS_DEV) {
+  cdnList.push('local');
+}
 
 async function handleSetVersion(key: TVersionKey, v: string) {
   console.log(v);
