@@ -23,7 +23,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@central-design-system/components": "^3.0.0-alpha.1",
+    "@central-design-system/components": "^3.0.0-alpha.2",
     "@central-design-system/icons": "^1.0.1",
     "@vue/repl": "1.4.1",
     "@vueuse/core": "9.12.0",

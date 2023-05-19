@@ -28,6 +28,25 @@
   }
 
   .versions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .control {
+      display: flex;
+      align-items: center;
+      margin: 0 $cds-spacing-xs;
+
+      .cds-dropdown {
+        width: 150px;
+      }
+
+      > span {
+        color: var(--cds-color-text-inverse);
+        margin-right: $cds-spacing-xs;
+      }
+    }
+
     select {
       margin-right: $cds-spacing-xs;
     }

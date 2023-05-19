@@ -37,6 +37,8 @@ const versions = reactive<Record<TVersionKey, IVersion>>({
   }
 });
 
+const cdnList = ['jsdelivr', 'jsdelivr-fastly', 'unpkg', config.IS_DEV && 'local'];
+
 async function handleSetVersion(key: TVersionKey, v: string) {
   console.log(v);
   versions[key].active = `loading...`;
@@ -71,31 +73,32 @@ function handleGithub() {
     </div>
     <div class="cds-flex cds-items-center">
       <div class="versions">
-        CDS version:
-        <select
-          :name="versions.cds.text"
-          id="versionVue"
-          @change="(event) => handleSetVersion('cds', event.target?.value)"
-        >
-          <option :value="versions.cds.active">{{ versions.cds.active }}</option>
-          <option v-for="version in versions.cds.published" :key="version" :value="version">{{ version }}</option>
-        </select>
-        Vue version:
-        <select
-          :name="versions.vue.text"
-          id="versionVue"
-          @change="(event) => handleSetVersion('vue', event.target?.value)"
-        >
-          <option :value="versions.vue.active">{{ versions.vue.active }}</option>
-          <option v-for="version in versions.vue.published" :key="version" :value="version">{{ version }}</option>
-        </select>
-        CDN:
-        <select name="CDN" id="CDN" v-model="cdn">
-          <option value="jsdelivr">jsDelivr</option>
-          <option value="jsdelivr-fastly">jsDelivr Fastly</option>
-          <option value="unpkg">unpkg</option>
-          <option v-if="config.IS_DEV" value="local">local</option>
-        </select>
+        <div class="control">
+          <span>CDS version:</span>
+          <cds-dropdown
+            v-model="versions.cds.active"
+            :items="versions.cds.published"
+            placeholder="CDS version"
+            hide-messages
+            @update:model-value="(value) => handleSetVersion('cds', value)"
+          />
+        </div>
+
+        <div class="control">
+          <span>Vue version:</span>
+          <cds-dropdown
+            v-model="versions.vue.active"
+            :items="versions.vue.published"
+            placeholder="Vue version"
+            hide-messages
+            @update:model-value="(value) => handleSetVersion('vue', value)"
+          />
+        </div>
+
+        <div class="control">
+          <span>CDN:</span>
+          <cds-dropdown v-model="cdn" :items="cdnList" hide-messages />
+        </div>
       </div>
       <div class="actions">
         <cds-button
