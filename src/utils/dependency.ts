@@ -83,7 +83,7 @@ export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): IImpor
     },
     '@central-design-system/illustrations': {
       pkg: '@central-design-system/illustrations',
-      version: '3',
+      version: '3.0.0-alpha.2',
       path: '/dist/cds-illustrations.es.js'
     }
   };
