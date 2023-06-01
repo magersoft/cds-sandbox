@@ -1,15 +1,16 @@
 import { getCurrentInstance } from 'vue';
-import CdsComponents from '@central-design-system/components';
-import CdsIcon from '@central-design-system/icons';
+import { createCds, components, directives } from '@central-design-system/components';
+import { icons } from '@central-design-system/icons';
+import { illustrations } from '@central-design-system/illustrations';
 
 let installed = false;
 await loadStyle();
 
-export function createCds() {
+export function setupCds() {
   if (installed) return;
+  const cds = createCds({ components, directives, icons, illustrations });
   const vm = getCurrentInstance();
-  vm.appContext.app.use(CdsComponents);
-  vm.appContext.app.use(CdsIcon);
+  vm.appContext.app.use(cds);
   installed = true;
 }
 

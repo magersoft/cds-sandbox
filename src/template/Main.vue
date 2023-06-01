@@ -1,8 +1,8 @@
 <script setup>
 import App from './App.vue';
-import { createCds } from './cds-setup.js';
+import { setupCds } from './cds-setup.js';
 
-createCds();
+setupCds();
 </script>
 
 <template>
