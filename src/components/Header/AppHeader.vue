@@ -44,7 +44,6 @@ if (config.IS_DEV) {
 }
 
 async function handleSetVersion(key: TVersionKey, v: string) {
-  console.log(v);
   versions[key].active = `loading...`;
   await store.setVersion(key, v);
   versions[key].active = v;

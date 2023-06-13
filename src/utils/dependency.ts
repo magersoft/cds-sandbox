@@ -14,7 +14,7 @@ export interface IDependency {
 }
 
 export type Cdn = 'unpkg' | 'jsdelivr' | 'jsdelivr-fastly' | 'local';
-export const cdn = useLocalStorage<Cdn>('setting-cdn', 'local');
+export const cdn = useLocalStorage<Cdn>('setting-cdn', 'jsdelivr-fastly');
 
 export const getCdnLink = (pkg: string, version: string | undefined, path: string): string => {
   version = version ? `@${version}` : '';
