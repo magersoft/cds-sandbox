@@ -71,6 +71,11 @@ export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): IImpor
       version: '2.1.9',
       path: '/dist/maska.js'
     },
+    axios: {
+      pkg: 'axios',
+      version: '1.4.0',
+      path: '/dist/esm/axios.js'
+    },
     '@central-design-system/components': {
       pkg: '@central-design-system/components',
       version: cds,
