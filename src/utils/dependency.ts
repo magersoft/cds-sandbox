@@ -83,12 +83,12 @@ export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): IImpor
     },
     '@central-design-system/icons': {
       pkg: '@central-design-system/icons',
-      version: '1',
+      version: cds,
       path: '/dist/cds-icons.es.js'
     },
     '@central-design-system/illustrations': {
       pkg: '@central-design-system/illustrations',
-      version: '3.0.0-alpha.2',
+      version: cds,
       path: '/dist/cds-illustrations.es.js'
     }
   };
@@ -116,5 +116,5 @@ export const getSupportedVueVersions = () => {
 
 export const getSupportedCdsVersions = () => {
   const versions = getVersions('@central-design-system/components');
-  return computed(() => versions.value.filter((version) => compare(version, '3.0.0', '>=')));
+  return computed(() => unref(versions).filter((version) => compare(version, '3.0.0-alpha.0', '>=')));
 };

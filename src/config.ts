@@ -6,6 +6,6 @@ export default {
   IMPORT_MAP: 'import-map.json',
   USER_IMPORT_MAP: 'import_map.json',
   IS_DEV: import.meta.env.DEV,
-  CDS_VERSION: 'next',
+  CDS_VERSION: 'latest',
   VUE_VERSION: 'latest'
 };
