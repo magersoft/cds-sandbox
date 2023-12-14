@@ -52,6 +52,14 @@
     }
   }
 
+  .themes {
+    .control {
+      .cds-dropdown {
+        width: 100px;
+      }
+    }
+  }
+
   .actions {
     button {
       margin-left: $cds-spacing-xs;

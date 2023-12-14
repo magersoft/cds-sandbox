@@ -23,4 +23,8 @@ if (config.IS_DEV) {
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.cds-sandbox {
+  height: 100vh;
+}
+</style>

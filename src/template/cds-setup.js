@@ -8,7 +8,15 @@ await loadStyle();
 
 export function setupCds() {
   if (installed) return;
-  const cds = createCds({ components, directives, icons, illustrations });
+  const cds = createCds({
+    components,
+    directives,
+    icons,
+    illustrations,
+    theme: {
+      defaultTheme: '#THEME#'
+    }
+  });
   const vm = getCurrentInstance();
   vm.appContext.app.use(cds);
   installed = true;

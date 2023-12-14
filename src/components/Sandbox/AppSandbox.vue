@@ -51,7 +51,7 @@ watchEffect(() => history.replaceState({}, '', `#${store.serialize()}`));
     />
   </main>
   <template v-else>
-    <cds-loader />
+    <cds-loader class="cds-flex cds-items-center cds-justify-center cds-h-full" />
   </template>
 </template>
 

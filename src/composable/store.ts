@@ -1,4 +1,4 @@
-import { reactive, shallowRef, watch, watchEffect } from 'vue';
+import { reactive, ref, shallowRef, unref, watch, watchEffect } from 'vue';
 import { File, compileFile } from '@vue/repl';
 import { atou, generateImportMap, getCdnLink, getVueLink, mergeImportMap, utoa } from '@/utils';
 import config from '@/config';
@@ -11,11 +11,14 @@ import stylesTemplate from '@/template/styles.css?raw';
 import type { IInitial, IUserOptions, TSerializeState, TVersionKey } from './store.d';
 import type { StoreState, Store } from '@vue/repl';
 import type { IImportMap } from '@/utils';
+import { useStorage } from '@vueuse/core';
 
 export const useStore = (initial: IInitial) => {
   let compiler = $(shallowRef<typeof import('vue/compiler-sfc')>());
   let userOptions = $ref<IUserOptions>(initial.userOptions || {});
+  const storage = useStorage('theme', config.DEFAULT_THEME);
 
+  const theme = ref(unref(storage));
   const versions = reactive(initial.versions || { vue: config.VUE_VERSION, cds: config.CDS_VERSION });
   const hideFile = $computed(() => !config.IS_DEV && !userOptions.showHidden);
 
@@ -84,11 +87,21 @@ export const useStore = (initial: IInitial) => {
     { immediate: true }
   );
 
+  watch(
+    () => theme.value,
+    () => {
+      const file = new File(config.CDS_FILE, generateCdsCode(versions.cds, userOptions.styleSource).trim(), hideFile);
+      state.files[config.CDS_FILE] = file;
+      compileFile(store, file);
+    },
+    { immediate: true }
+  );
+
   function generateCdsCode(version: string, stylesSource?: string): string {
     const style = stylesSource
       ? stylesSource.replace('#VERSION#', version)
       : getCdnLink('@central-design-system/components', version, '/dist/cds.css');
-    return cdsSetupTemplate.replace('#STYLE#', style);
+    return cdsSetupTemplate.replace('#STYLE#', style).replace('#THEME#', unref(theme));
   }
 
   async function setVueVersion(version: string): Promise<void> {
@@ -203,15 +216,22 @@ export const useStore = (initial: IInitial) => {
     versions.cds = version;
   }
 
+  function setTheme(value: string): void {
+    theme.value = value;
+    storage.value = value;
+  }
+
   return {
     ...store,
 
+    theme,
     versions,
     userOptions: $$(userOptions),
 
     init,
     serialize,
     setVersion,
+    setTheme,
     pr: initial.pr
   };
 };

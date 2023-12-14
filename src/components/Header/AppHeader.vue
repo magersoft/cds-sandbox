@@ -39,6 +39,8 @@ const versions = reactive<Record<TVersionKey, IVersion>>({
 
 const cdnList = ['jsdelivr', 'jsdelivr-fastly', 'unpkg'];
 
+const themesList = ['cds', 'b2b', 'promo', 'dark'];
+
 if (config.IS_DEV) {
   cdnList.push('local');
 }
@@ -47,6 +49,10 @@ async function handleSetVersion(key: TVersionKey, v: string) {
   versions[key].active = `loading...`;
   await store.setVersion(key, v);
   versions[key].active = v;
+}
+
+async function handleChangeTheme(theme: string) {
+  await store.setTheme(theme);
 }
 
 async function handleCopyLink() {
@@ -75,6 +81,19 @@ function handleGithub() {
       </div>
     </div>
     <div class="cds-flex cds-items-center">
+      <div class="versions themes">
+        <div class="control">
+          <span>Theme:</span>
+          <cds-dropdown
+            :model-value="store.theme"
+            :items="themesList"
+            placeholder="CDS version"
+            hide-messages
+            @update:model-value="(value) => handleChangeTheme(value)"
+          />
+        </div>
+      </div>
+
       <div class="versions">
         <div class="control">
           <span>CDS version:</span>
@@ -104,23 +123,9 @@ function handleGithub() {
         </div>
       </div>
       <div class="actions">
-        <cds-button
-          title="Prettier code"
-          dark
-          appearance="transparent"
-          prepend-icon="edit"
-          icon-only
-          @click="handlePrettier"
-        />
-        <cds-button
-          title="Copy URL"
-          dark
-          appearance="transparent"
-          prepend-icon="copy"
-          icon-only
-          @click="handleCopyLink"
-        />
-        <cds-button title="Show on Github" dark appearance="transparent" icon-only @click="handleGithub">
+        <cds-button title="Prettier code" appearance="transparent" theme="dark" icon="edit" @click="handlePrettier" />
+        <cds-button title="Copy URL" appearance="transparent" theme="dark" icon="copy" @click="handleCopyLink" />
+        <cds-button title="Show on Github" appearance="transparent" theme="dark" icon @click="handleGithub">
           <template #prepend>
             <i v-html="githubSvg" class="svg-icon" />
           </template>

@@ -7,5 +7,6 @@ export default {
   USER_IMPORT_MAP: 'import_map.json',
   IS_DEV: import.meta.env.DEV,
   CDS_VERSION: 'latest',
-  VUE_VERSION: 'latest'
+  VUE_VERSION: 'latest',
+  DEFAULT_THEME: 'cds'
 };
