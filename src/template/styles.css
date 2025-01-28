@@ -1,8 +1,8 @@
 body {
-  background-color: rgb(var(--cds-color-page-primary));
-  color: rgb(var(--cds-color-content-primary));
+  background-color: rgb(var(--cds-color-page-primary, var(--cds-theme-surface-secondary)));
+  color: rgb(var(--cds-color-content-primary, var(--cds-theme-text-primary)));
 }
 
 #app {
-  padding: var(--cds-spacing-300);
+  padding: var(--cds-spacing-300, 1rem);
 }

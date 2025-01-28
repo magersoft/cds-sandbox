@@ -24,9 +24,9 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@central-design-system/components": "../central-design-system/packages/components",
-    "@central-design-system/icons": "../central-design-system/packages/icons",
-    "@central-design-system/illustrations": "../central-design-system/packages/illustrations",
+    "@central-design-system/components": "^3.0.0-rc.1",
+    "@central-design-system/icons": "^3.0.0-rc.1",
+    "@central-design-system/illustrations": "^3.0.0-rc.1",
     "@vue/repl": "4.4.3",
     "@vueuse/core": "11.0.3",
     "semver": "7.6.3",

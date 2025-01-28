@@ -15,7 +15,8 @@ import type { StoreState, ImportMap } from '@vue/repl';
 
 export const useStore = (initial: IInitial) => {
   const saved: TSerializeState | undefined = initial.serializedState ? deserialize(initial.serializedState) : undefined;
-  const storage = useStorage('theme', config.DEFAULT_THEME);
+  const isLegacy = config.LEGACY_VERSIONS.some((legacyVersion) => config.CDS_VERSION.startsWith(legacyVersion));
+  const storage = useStorage('theme', isLegacy ? config.LEGACY_DEFAULT_THEME : config.DEFAULT_THEME);
 
   const versions = reactive<TVersions>({
     vue: config.VUE_VERSION,
@@ -24,7 +25,7 @@ export const useStore = (initial: IInitial) => {
   });
 
 
-  const theme = ref(unref(storage));
+  const theme = ref(isLegacy ? config.LEGACY_DEFAULT_THEME : unref(storage));
 
   const userOptions: IUserOptions = {};
   const hideFile = !config.IS_DEV && !userOptions.showHidden;
@@ -56,6 +57,9 @@ export const useStore = (initial: IInitial) => {
   });
 
   watch(() => versions.cds, (version) => {
+    const isLegacyVersion = config.LEGACY_VERSIONS.some((legacyVersion) => version.startsWith(legacyVersion));
+    setTheme(isLegacyVersion ? config.LEGACY_DEFAULT_THEME : config.DEFAULT_THEME);
+
     store.files[config.CDS_FILE].code = generateCdsCode(version, userOptions.styleSource).trim();
     compileFile(store, store.files[config.CDS_FILE]).then((errs) => (store.errors = errs));
   });
@@ -75,13 +79,10 @@ export const useStore = (initial: IInitial) => {
   );
 
   function generateCdsCode(version: string, stylesSource?: string): string {
-    const isLegacy = version.includes(config.LEGACY_VERSION);
-    console.log(version, isLegacy);
-
     const style = stylesSource
       ? stylesSource.replace('#VERSION#', version)
       : getCdnLink('@central-design-system/components', version, '/dist/cds.css');
-    return CdsSetupTemplate.replace('#STYLE#', style).replace('#THEME#', isLegacy ? 'cds' : unref(theme));
+    return CdsSetupTemplate.replace('#STYLE#', style).replace('#THEME#', unref(theme));
   }
 
   async function setVueVersion(version: string): Promise<void> {

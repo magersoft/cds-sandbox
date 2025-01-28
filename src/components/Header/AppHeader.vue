@@ -48,7 +48,8 @@ const versions = reactive<Record<TVersionKey, IVersion>>({
 
 const cdnList = ['jsdelivr', 'jsdelivr-fastly', 'unpkg'];
 
-const themesList = ['cdsLight', 'cdsDark', 'b2bLight', 'b2bDark'];
+const legacyVersion = computed(() => config.LEGACY_VERSIONS.some((legacyVersion) => store.versions.cds.startsWith(legacyVersion)));
+const themesList = computed(() => unref(legacyVersion) ? config.LEGACY_THEME_LIST : config.THEME_LIST);
 
 if (config.IS_DEV) {
   cdnList.push('local');
