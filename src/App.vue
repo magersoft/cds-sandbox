@@ -1,30 +1,90 @@
 <script setup lang="ts">
-import { AppHeader, AppSandbox } from '@/components';
 import { useStore } from '@/composable';
+import Monaco from '@vue/repl/monaco-editor'
+import { Repl } from '@vue/repl';
+import { ref } from 'vue';
 import config from '@/config';
+import { AppHeader } from '@/components';
 
-import type { IUserOptions } from '@/composable/store.d';
+const loading = ref(true);
 
-const serializedState = location.hash.slice(1);
-const userOptions: IUserOptions = {};
-const pr = new URLSearchParams(location.search).get('pr');
+const store = useStore({
+  serializedState: location.hash.slice(1),
+  initialized() {
+      loading.value = false;
+  },
+});
 
-const store = useStore({ serializedState, userOptions, pr });
+console.log('Store:', store);
 
-if (config.IS_DEV) {
-  console.log('Store', store);
+const autoSave = ref(getAutoSaveState());
+watch(autoSave, setAutoSaveState);
+
+const dark = useDark();
+const theme = new URLSearchParams(location.search).get('theme');
+if (theme === 'dark') {
+  dark.value = true;
+}
+
+// persist state
+watchEffect(() =>
+  history.replaceState(
+    {},
+    '',
+    `${location.origin}${location.pathname}#${store.serialize()}`,
+  ),
+);
+
+const replRef = ref<InstanceType<typeof Repl>>();
+
+const refreshPreview = () => {
+  replRef.value?.reload();
+};
+
+const handleKeydown = (evt: KeyboardEvent) => {
+  if ((evt.ctrlKey || evt.metaKey) && evt.code === 'KeyS') {
+    evt.preventDefault()
+    return
+  }
+}
+
+function getAutoSaveState() {
+  return JSON.parse(localStorage.getItem(config.AUTO_SAVE_KEY) || 'true')
+}
+
+function setAutoSaveState(value: boolean) {
+  localStorage.setItem(config.AUTO_SAVE_KEY, JSON.stringify(value))
 }
 </script>
 
 <template>
-  <div class="cds-sandbox dark">
-    <app-header :store="store" />
-    <app-sandbox :store="store" />
+  <div v-if="!loading" antialiased>
+    <AppHeader :store="store" @refresh="refreshPreview" />
+    <Repl
+      ref="replRef"
+      v-model="autoSave"
+      :theme="dark ? 'dark' : 'light'"
+      :preview-theme="true"
+      :store="store"
+      :editor="Monaco"
+      :clear-console="false"
+      @keydown="handleKeydown"
+    />
   </div>
+
+  <template v-else>
+    <cds-loader class="cds-flex cds-items-center cds-justify-center cds-h-full" />
+  </template>
 </template>
 
-<style scoped lang="scss">
-.cds-sandbox {
-  height: 100vh;
+<style lang="scss">
+body {
+  --nav-height: 50px;
+  background-color: rgb(var(--cds-color-page-primary)) !important;
+}
+
+.vue-repl {
+  height: calc(100vh - var(--nav-height)) !important;
+  --color-branding: rgb(var(--cds-color-brand-primary)) !important;
 }
 </style>

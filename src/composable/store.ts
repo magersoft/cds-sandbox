@@ -1,140 +1,137 @@
-import { reactive, ref, shallowRef, unref, watch, watchEffect } from 'vue';
-import { File, compileFile } from '@vue/repl';
-import { atou, generateImportMap, getCdnLink, getVueLink, mergeImportMap, utoa } from '@/utils';
+import { reactive, ref, unref, watch, watchEffect } from 'vue';
+import { File, compileFile, mergeImportMap, useStore as useReplStore } from '@vue/repl';
+import { atou, genCompilerSfcLink, generateImportMap, getCdnLink, utoa } from '@/utils';
+import { objectOmit, useStorage } from '@vueuse/core';
 import config from '@/config';
 
-import helloWorldTemplate from '@/template/HelloWorld.vue?raw';
-import mainTemplate from '@/template/Main.vue?raw';
-import cdsSetupTemplate from '@/template/cds-setup.js?raw';
-import stylesTemplate from '@/template/styles.css?raw';
+import WelcomeTemplate from '@/template/Welcome.vue?raw';
+import MainTemplate from '@/template/Main.vue?raw';
+import CdsSetupTemplate from '@/template/cds-setup.js?raw';
+import TsConfigTemplate from '@/template/tsconfig.json?raw';
+import StylesTemplate from '@/template/styles.css?raw';
 
-import type { IInitial, IUserOptions, TSerializeState, TVersionKey } from './store.d';
-import type { StoreState, Store } from '@vue/repl';
-import type { IImportMap } from '@/utils';
-import { useStorage } from '@vueuse/core';
+import type { IInitial, IUserOptions, TSerializeState, TVersionKey, TVersions } from './store.d';
+import type { StoreState, ImportMap } from '@vue/repl';
 
 export const useStore = (initial: IInitial) => {
-  let compiler = $(shallowRef<typeof import('vue/compiler-sfc')>());
-  let userOptions = $ref<IUserOptions>(initial.userOptions || {});
+  const saved: TSerializeState | undefined = initial.serializedState ? deserialize(initial.serializedState) : undefined;
   const storage = useStorage('theme', config.DEFAULT_THEME);
 
+  const versions = reactive<TVersions>({
+    vue: config.VUE_VERSION,
+    cds: config.CDS_VERSION,
+    typescript: config.TYPESCRIPT_VERSION
+  });
+
+
   const theme = ref(unref(storage));
-  const versions = reactive(initial.versions || { vue: config.VUE_VERSION, cds: config.CDS_VERSION });
-  const hideFile = $computed(() => !config.IS_DEV && !userOptions.showHidden);
 
-  const files = initFiles(initial.serializedState || '');
-  const state = reactive<StoreState>({
+  const userOptions: IUserOptions = {};
+  const hideFile = !config.IS_DEV && !userOptions.showHidden;
+  const builtinImportMap = computed<ImportMap>(() => generateImportMap(versions));
+
+  const storeState: Partial<StoreState> = toRefs(reactive({
+    files: initFiles(),
     mainFile: config.MAIN_FILE,
-    files,
-    activeFile: files[config.APP_FILE],
-    errors: [],
-    vueRuntimeURL: '',
-    vueServerRendererURL: '',
-    resetFlip: false
-  });
-
-  const builtinImportMap = $computed<IImportMap>(() => generateImportMap(versions));
-
-  const userImportMap = $computed<IImportMap>(() => {
-    const code = state.files[config.USER_IMPORT_MAP]?.code.trim();
-
-    if (!code) return {};
-
-    let map: IImportMap = {};
-
-    try {
-      map = JSON.parse(code);
-    } catch (err) {
-      console.error(err);
+    activeFilename: config.APP_FILE,
+    vueVersion: computed(() => versions.vue),
+    typescriptVersion: versions.typescript,
+    builtinImportMap,
+    template: {
+      welcomeSFC: MainTemplate
+    },
+    sfcOptions: {
+      script: {
+        propsDestructure: true
+      }
     }
+  }));
 
-    return map;
+  const store = useReplStore(storeState);
+  store.files[config.CDS_FILE].hidden = hideFile;
+  store.files[config.MAIN_FILE].hidden = hideFile;
+
+  setVueVersion(versions.vue).then(() => {
+    initial.initialized?.();
   });
 
-  const importMap = $computed<IImportMap>(() => mergeImportMap(builtinImportMap, userImportMap));
-
-  if (config.IS_DEV) {
-    console.log('Files:', files, 'Options:', userOptions);
-  }
-
-  const store: Store = reactive({
-    init,
-    state,
-    compiler: $$(compiler!),
-    setActive,
-    addFile,
-    deleteFile,
-    getImportMap,
-    initialShowOutput: false,
-    initialOutputMode: 'preview'
+  watch(() => versions.cds, (version) => {
+    store.files[config.CDS_FILE].code = generateCdsCode(version, userOptions.styleSource).trim();
+    compileFile(store, store.files[config.CDS_FILE]).then((errs) => (store.errors = errs));
   });
 
-  watch(
-    $$(importMap),
-    (content) => {
-      state.files[config.IMPORT_MAP] = new File(config.IMPORT_MAP, JSON.stringify(content, undefined, 2), hideFile);
-    },
-    { immediate: true, deep: true }
-  );
+  watch(builtinImportMap, (newBuiltInImportMap) => {
+    const importMap = JSON.parse(store.files[config.IMPORT_MAP].code);
+    store.files[config.IMPORT_MAP].code = JSON.stringify(mergeImportMap(importMap, newBuiltInImportMap), undefined, 2);
+  }, { deep: true });
 
   watch(
-    () => versions.cds,
-    (version) => {
-      const file = new File(config.CDS_FILE, generateCdsCode(version, userOptions.styleSource).trim(), hideFile);
-      state.files[config.CDS_FILE] = file;
-      compileFile(store, file);
-    },
-    { immediate: true }
-  );
-
-  watch(
-    () => theme.value,
+    theme,
     () => {
-      const file = new File(config.CDS_FILE, generateCdsCode(versions.cds, userOptions.styleSource).trim(), hideFile);
-      state.files[config.CDS_FILE] = file;
-      compileFile(store, file);
+      store.files[config.CDS_FILE].code = generateCdsCode(versions.cds, userOptions.styleSource).trim();
+      compileFile(store, store.files[config.CDS_FILE]).then((errs) => (store.errors = errs));
     },
     { immediate: true }
   );
 
   function generateCdsCode(version: string, stylesSource?: string): string {
+    const isLegacy = version.includes(config.LEGACY_VERSION);
+    console.log(version, isLegacy);
+
     const style = stylesSource
       ? stylesSource.replace('#VERSION#', version)
       : getCdnLink('@central-design-system/components', version, '/dist/cds.css');
-    return cdsSetupTemplate.replace('#STYLE#', style).replace('#THEME#', unref(theme));
+    return CdsSetupTemplate.replace('#STYLE#', style).replace('#THEME#', isLegacy ? 'cds' : unref(theme));
   }
 
   async function setVueVersion(version: string): Promise<void> {
-    const { compilerSfc, runtimeDom } = getVueLink(version);
+    store.compiler = await import(
+      /* @vite-ignore */ genCompilerSfcLink(version)
+    );
 
-    compiler = await import(/* @vite-ignore */ compilerSfc);
-    state.vueRuntimeURL = runtimeDom;
     versions.vue = version;
 
     console.info(`[@vue/repl] Vue version set to ${version}]`);
   }
 
-  async function init(): Promise<void> {
-    await setVueVersion(versions.vue);
-
-    for (const file of Object.values(state.files)) {
-      compileFile(store, file);
+  async function setVersion(key: TVersionKey, version: string): Promise<void> {
+    switch (key) {
+      case 'vue':
+        await setVueVersion(version);
+        break;
+      case 'cds':
+        versions.cds = version;
+        break;
+      case 'typescript':
+        versions.typescript = version;
+        break;
     }
-
-    watchEffect(() => compileFile(store, state.activeFile));
   }
 
-  function getFiles(): Record<string, string> {
-    const exported: Record<string, string> = {};
-    for (const file of Object.values(state.files)) {
-      if (file.hidden) continue;
-      exported[file.filename] = file.code;
+  function init() {
+    watchEffect(() => {
+      compileFile(store, store.activeFile).then((errs) => (store.errors = errs));
+    });
+
+    for (const [filename, file] of Object.entries(store.files)) {
+      if (filename === store.activeFilename) continue;
+      compileFile(store, file).then((errs) => store.errors.push(...errs));
     }
-    return exported;
+
+    watch(
+      () => [
+        store.files[config.TSCONFIG]?.code,
+        store.typescriptVersion,
+        store.dependencyVersion,
+        store.vueVersion
+      ],
+      useDebounceFn(() => store.reloadLanguageTools?.(), config.RELOAD_LANGUAGE_TOOLS_DELAY),
+      { deep: true }
+    )
   }
 
   function serialize(): string {
-    const state: TSerializeState = { ...getFiles() };
+    const state: TSerializeState = { ...store.getFiles() };
     state._o = userOptions;
     return utoa(JSON.stringify(state));
   }
@@ -143,77 +140,34 @@ export const useStore = (initial: IInitial) => {
     return JSON.parse(atou(str));
   }
 
-  function initFiles(serializedState: string): StoreState['files'] {
-    const files: StoreState['files'] = {};
+  function initFiles() {
+    const files: Record<string, File> = Object.create(null)
 
-    if (serializedState) {
-      const saved = deserialize(serializedState);
+    if (saved) {
+      for (let [filename, file] of Object.entries(objectOmit(saved, ['_o']))) {
+        if (![config.IMPORT_MAP, config.TSCONFIG].includes(filename) && !filename.startsWith('src/')) {
+          filename = `src/${filename}`;
+        }
 
-      for (const [filename, file] of Object.entries(saved)) {
-        if (filename === '_o') continue;
         files[filename] = new File(filename, file as string);
       }
-
-      userOptions = saved._o || {};
     } else {
-      files[config.APP_FILE] = new File(config.APP_FILE, helloWorldTemplate);
+      files[config.APP_FILE] = new File(config.APP_FILE, WelcomeTemplate);
     }
 
-    files[config.MAIN_FILE] = new File(config.MAIN_FILE, mainTemplate, hideFile);
-    files[config.STYLES_FILE] = new File(config.STYLES_FILE, stylesTemplate, hideFile);
+    if (!files[config.CDS_FILE]) {
+      files[config.CDS_FILE] = new File(config.CDS_FILE, generateCdsCode(versions.cds, userOptions.styleSource));
+    }
 
-    if (!files[config.USER_IMPORT_MAP]) {
-      files[config.USER_IMPORT_MAP] = new File(config.USER_IMPORT_MAP, JSON.stringify({ imports: {} }, undefined, 2));
+    if (!files[config.TSCONFIG]) {
+      files[config.TSCONFIG] = new File(config.TSCONFIG, TsConfigTemplate);
+    }
+
+    if (!files[config.STYLES_FILE]) {
+      files[config.STYLES_FILE] = new File(config.STYLES_FILE, StylesTemplate, hideFile);
     }
 
     return files;
-  }
-
-  function setActive(filename: string): void {
-    const file = state.files[filename];
-    if (file.hidden) return;
-    state.activeFile = file;
-  }
-
-  function addFile(fileOrFilename: string | File): void {
-    const file = typeof fileOrFilename === 'string' ? new File(fileOrFilename) : fileOrFilename;
-    state.files[file.filename] = file;
-    setActive(file.filename);
-  }
-
-  async function deleteFile(filename: string): Promise<void> {
-    const configFiles = [config.MAIN_FILE, config.APP_FILE, config.CDS_FILE, config.USER_IMPORT_MAP, config.IMPORT_MAP];
-
-    if (configFiles.includes(filename)) {
-      alert('You cannot remove this file. It is required for the CDS Sandbox to work.');
-      return;
-    }
-
-    if (await confirm(`Are you sure you want to delete ${filename}?`)) {
-      if (state.activeFile.filename === filename) {
-        setActive(config.APP_FILE);
-      }
-      delete state.files[filename];
-    }
-  }
-
-  function getImportMap(): IImportMap {
-    return importMap;
-  }
-
-  async function setVersion(key: TVersionKey, version: string): Promise<void> {
-    switch (key) {
-      case 'cds':
-        await setCdsVersion(version);
-        break;
-      case 'vue':
-        await setVueVersion(version);
-        break;
-    }
-  }
-
-  function setCdsVersion(version: string): void {
-    versions.cds = version;
   }
 
   function setTheme(value: string): void {
@@ -221,19 +175,18 @@ export const useStore = (initial: IInitial) => {
     storage.value = value;
   }
 
-  return {
-    ...store,
-
-    theme,
+  const utils = {
     versions,
-    userOptions: $$(userOptions),
-
-    init,
-    serialize,
     setVersion,
     setTheme,
-    pr: initial.pr
-  };
+    serialize,
+    init,
+    theme
+  }
+
+  Object.assign(store, utils);
+
+  return store as typeof store & typeof utils;
 };
 
 export type ReplStore = ReturnType<typeof useStore>;

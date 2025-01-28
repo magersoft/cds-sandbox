@@ -1,19 +1,13 @@
 {
-  "extends": "@vue/tsconfig/tsconfig.web.json",
-  "include": ["src"],
-  "exclude": ["src/template"],
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
   "compilerOptions": {
-    "lib": ["esnext", "DOM", "DOM.Iterable"],
     "baseUrl": ".",
-    "types": [],
     "paths": {
-      "@/*": ["./src/*"]
-    }
+      "@/*": ["src/*"]
+    },
+    "types": [],
+    "skipLibCheck": true
   },
-
-  "references": [
-    {
-      "path": "./tsconfig.config.json"
-    }
-  ]
+  "include": ["src"],
+  "exclude": ["src/template"]
 }

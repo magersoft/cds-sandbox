@@ -1,21 +1,25 @@
 <script setup lang="ts">
 import { usePrettier } from '@/composable/prettier';
 import { reactive } from 'vue';
-import { cdn, getSupportedCdsVersions, getSupportedVueVersions } from '@/utils';
+import { languageToolsVersion } from '@vue/repl';
+import { cdn, getSupportedCdsVersions, getSupportedTSVersions, getSupportedVueVersions } from '@/utils';
 
 import cdsLogo from '../../assets/logo.svg?raw';
-import githubSvg from '../../assets/icons/github.svg?raw';
 
 import type { ReplStore } from '@/composable';
 import type { ComputedRef } from 'vue';
 import type { TVersionKey } from '@/composable/store.d';
 import config from '@/config';
+import { useTheme } from '@central-design-system/components';
 
 const appVersion = import.meta.env.APP_VERSION;
 const replVersion = import.meta.env.REPL_VERSION;
 
 const { store } = defineProps<{
   store: ReplStore;
+}>();
+const emit = defineEmits<{
+  (e: 'refresh'): void
 }>();
 
 interface IVersion {
@@ -34,16 +38,24 @@ const versions = reactive<Record<TVersionKey, IVersion>>({
     text: 'Vue',
     published: getSupportedVueVersions(),
     active: store.versions.vue
+  },
+  typescript: {
+    text: 'TypeScript',
+    published: getSupportedTSVersions(),
+    active: store.versions.typescript
   }
 });
 
 const cdnList = ['jsdelivr', 'jsdelivr-fastly', 'unpkg'];
 
-const themesList = ['cds', 'b2b', 'promo', 'dark'];
+const themesList = ['cdsLight', 'cdsDark', 'b2bLight', 'b2bDark'];
 
 if (config.IS_DEV) {
   cdnList.push('local');
 }
+
+const dark = useDark()
+const toggleDark = useToggle(dark);
 
 async function handleSetVersion(key: TVersionKey, v: string) {
   versions[key].active = `loading...`;
@@ -57,16 +69,41 @@ async function handleChangeTheme(theme: string) {
 
 async function handleCopyLink() {
   await navigator.clipboard.writeText(location.href);
-  alert('URL has been copied to clipboard.');
+  addNotification('URL has been copied to clipboard.');
 }
 
 function handlePrettier() {
   usePrettier(store);
-  alert('Your code is prettier now!');
+  addNotification('Your code is prettier now!');
 }
 
-function handleGithub() {
-  window.open('https://github.com/magersoft/cds-sandbox', '_blank');
+
+function handleRefreshView() {
+  emit('refresh');
+}
+
+const theme = useTheme();
+function handleToggleTheme() {
+  toggleDark();
+  theme.global.name.value = theme.global.current.value.dark ? 'cdsLight' : 'cdsDark'
+}
+
+const notifications = reactive([]);
+
+function addNotification(text: string) {
+  const id = Date.now();
+
+  const newNotification = {
+    id,
+    modelValue: true,
+    status: 'success',
+    text,
+    variant: 'compact',
+    location: 'bottom',
+    closable: true
+  };
+
+  notifications.push(newNotification);
 }
 </script>
 
@@ -76,27 +113,39 @@ function handleGithub() {
       <div v-html="cdsLogo" class="logo" />
       <h1 class="title">Sandbox</h1>
       <div class="tags">
-        <cds-tag color="blue">v{{ appVersion }}</cds-tag>
-        <cds-tag color="blue">repl v{{ replVersion }}</cds-tag>
+        <cds-tag color="indigo">v{{ appVersion }}</cds-tag>
+        <cds-tag color="cyan">repl v{{ replVersion }}</cds-tag>
+        <cds-tag color="cyan">volar v{{ languageToolsVersion }}</cds-tag>
+      </div>
+      <div class="themes">
+        <cds-menu width="100">
+          <template #activator="{ props }">
+            <cds-button
+              :text="store.theme"
+              prepend-icon="fill"
+              size="sm"
+              appearance="tertiary"
+              style="width:100px"
+              v-bind="props"
+            />
+          </template>
+          <cds-list>
+            <cds-list-item
+              v-for="theme in themesList"
+              :active="theme === store.theme"
+              :value="theme"
+              @click="handleChangeTheme(theme)"
+            >
+              {{ theme }}
+            </cds-list-item>
+          </cds-list>
+        </cds-menu>
       </div>
     </div>
-    <div class="cds-flex cds-items-center">
-      <div class="versions themes">
-        <div class="control">
-          <span>Theme:</span>
-          <cds-dropdown
-            :model-value="store.theme"
-            :items="themesList"
-            placeholder="CDS version"
-            hide-messages
-            @update:model-value="(value) => handleChangeTheme(value)"
-          />
-        </div>
-      </div>
-
+    <div class="cds-flex cds-items-center cds-gap-6">
       <div class="versions">
         <div class="control">
-          <span>CDS version:</span>
+          <span class="cds-text-xs">CDS:</span>
           <cds-dropdown
             v-model="versions.cds.active"
             :items="versions.cds.published"
@@ -107,7 +156,7 @@ function handleGithub() {
         </div>
 
         <div class="control">
-          <span>Vue version:</span>
+          <span class="cds-text-xs">Vue:</span>
           <cds-dropdown
             v-model="versions.vue.active"
             :items="versions.vue.published"
@@ -118,20 +167,38 @@ function handleGithub() {
         </div>
 
         <div class="control">
-          <span>CDN:</span>
-          <cds-dropdown v-model="cdn" :items="cdnList" hide-messages />
+          <span class="cds-text-xs">TypeScript:</span>
+          <cds-dropdown
+            v-model="versions.typescript.active"
+            :items="versions.typescript.published"
+            placeholder="Vue version"
+            hide-messages
+            @update:model-value="(value) => handleSetVersion('typescript', value)"
+          />
         </div>
       </div>
       <div class="actions">
-        <cds-button title="Prettier code" appearance="transparent" theme="dark" icon="edit" @click="handlePrettier" />
-        <cds-button title="Copy URL" appearance="transparent" theme="dark" icon="copy" @click="handleCopyLink" />
-        <cds-button title="Show on Github" appearance="transparent" theme="dark" icon @click="handleGithub">
-          <template #prepend>
-            <i v-html="githubSvg" class="svg-icon" />
+        <cds-functional-button title="Copy URL" icon="copy" @click="handleCopyLink" />
+        <cds-functional-button title="Change Sandbox Theme" :icon="dark ? 'star-fill' : 'star'" @click="handleToggleTheme" />
+
+        <cds-menu :close-on-content-click="false" width="190" transition="scale-transition">
+          <template #activator="{ props }">
+            <cds-functional-button icon="settings" appearance="tertiary" v-bind="props" />
           </template>
-        </cds-button>
+          <div class="cds-flex cds-pa-xs">
+            <div class="cds-w-full">
+              <cds-dropdown label="CDN" v-model="cdn" :items="cdnList" hide-messages />
+            </div>
+          </div>
+        </cds-menu>
       </div>
     </div>
+
+    <cds-notification-alert
+      v-for="notification in notifications"
+      :key="notification.id"
+      v-bind="notification"
+    />
   </header>
 </template>
 

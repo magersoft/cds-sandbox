@@ -1,11 +1,9 @@
-import { useLocalStorage, useFetch } from '@vueuse/core';
-import { computed, unref } from 'vue';
-import { compare } from 'compare-versions';
+import { gte } from 'semver'
 
-import type { IImportMap } from '@/utils/import-map';
 import type { TVersions } from '@/composable/store.d';
 import type { MaybeRef } from '@vueuse/core';
 import type { Ref } from 'vue';
+import type { ImportMap } from '@vue/repl';
 
 export interface IDependency {
   pkg?: string;
@@ -14,7 +12,7 @@ export interface IDependency {
 }
 
 export type Cdn = 'unpkg' | 'jsdelivr' | 'jsdelivr-fastly' | 'local';
-export const cdn = useLocalStorage<Cdn>('setting-cdn', 'jsdelivr-fastly');
+export const cdn = useLocalStorage<Cdn>('setting-cdn', 'jsdelivr');
 
 export const getCdnLink = (pkg: string, version: string | undefined, path: string): string => {
   version = version ? `@${version}` : '';
@@ -31,12 +29,11 @@ export const getCdnLink = (pkg: string, version: string | undefined, path: strin
   }
 };
 
-export const getVueLink = (version: string): Record<string, string> => ({
-  compilerSfc: getCdnLink('@vue/compiler-sfc', version, '/dist/compiler-sfc.esm-browser.js'),
-  runtimeDom: getCdnLink('@vue/runtime-dom', version, '/dist/runtime-dom.esm-browser.js')
-});
+export const genCompilerSfcLink = (version: string) => {
+  return getCdnLink('@vue/compiler-sfc', version, '/dist/compiler-sfc.esm-browser.js');
+};
 
-export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): IImportMap => {
+export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): ImportMap => {
   const dependencies: Record<string, IDependency> = {
     vue: {
       pkg: '@vue/runtime-dom',
@@ -48,7 +45,7 @@ export const generateImportMap = ({ vue, cds }: Partial<TVersions> = {}): IImpor
       path: '/dist/shared.esm-bundler.js'
     },
     '@vue/devtools-api': {
-      version: '6',
+      version: '7',
       path: '/lib/esm/index.js'
     },
     'vee-validate': {
@@ -110,11 +107,16 @@ export const getVersions = (pkg: MaybeRef<string>) => {
 };
 
 export const getSupportedVueVersions = () => {
-  const versions = $(getVersions('vue'));
-  return computed(() => versions.filter((version) => compare(version, '3.2.47', '>=')));
+  const versions = getVersions('vue');
+  return computed(() => versions.value.filter((version: string) => gte(version, '3.2.0')));
 };
+
+export const getSupportedTSVersions = () => {
+  const versions = getVersions('typescript');
+  return computed(() => versions.value.filter((version) => !version.includes('dev') && !version.includes('insiders')));
+}
 
 export const getSupportedCdsVersions = () => {
   const versions = getVersions('@central-design-system/components');
-  return computed(() => unref(versions).filter((version) => compare(version, '3.0.0-alpha.0', '>=')));
+  return computed(() => unref(versions).filter((version) => gte(version, '3.0.0-beta.0')));
 };

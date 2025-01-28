@@ -1,44 +1,49 @@
-@import '~@central-design-system/components/src/scss';
+@import '@central-design-system/components/src/scss';
 
 .app-header {
+  display: flex;
+  align-items: center;
   width: 100%;
-  height: toRem(50px);
-  background: #1a1a1a;
-  border: 1px solid #383838;
-  padding: $cds-spacing-xs;
+  height: var(--nav-height);
+  background: rgb(var(--cds-color-surface-tertiary));
+  padding: var(--cds-spacing-200);
+  border-bottom: var(--cds-border-100) solid rgb(var(--cds-color-line-tertiary));
 
   .logo {
     display: flex;
     align-items: center;
-    margin-right: $cds-spacing-xs;
+    margin-right: var(--cds-spacing-200);
   }
 
   .title {
-    font-size: var(--cds-font-heading-4);
-    color: var(--cds-color-text-inverse);
-    margin-right: $cds-spacing-m;
+    margin-bottom: 0;
+    margin-right: var(--cds-spacing-300);
+
+    @include cds-text-bold-400();
   }
 
   .tags {
-    .cds-tag {
-      margin-right: $cds-spacing-xs;
-      color: var(--cds-color-text-primary);
-      font-size: var(--cds-font-body-size-xs);
-    }
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-100);
+  }
+
+  .themes {
+    margin-left: var(--cds-spacing-400);
   }
 
   .versions {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: var(--cds-spacing-400);
 
     .control {
       display: flex;
       align-items: center;
-      margin: 0 $cds-spacing-xs;
 
       .cds-dropdown {
-        width: 150px;
+        width: 140px;
       }
 
       > span {
@@ -52,19 +57,10 @@
     }
   }
 
-  .themes {
-    .control {
-      .cds-dropdown {
-        width: 100px;
-      }
-    }
-  }
-
   .actions {
-    button {
-      margin-left: $cds-spacing-xs;
-      border: none;
-    }
+    display: flex;
+    align-items: center;
+    gap: var(--cds-spacing-200);
 
     .svg-icon {
       display: flex;

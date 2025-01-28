@@ -1,12 +1,16 @@
 export default {
-  MAIN_FILE: 'Main.vue',
-  APP_FILE: 'App.vue',
-  CDS_FILE: 'cds-setup.js',
-  STYLES_FILE: 'styles.css',
+  MAIN_FILE: 'src/Main.vue',
+  APP_FILE: 'src/App.vue',
+  CDS_FILE: 'src/cds-setup.js',
+  STYLES_FILE: 'src/styles.css',
   IMPORT_MAP: 'import-map.json',
-  USER_IMPORT_MAP: 'import_map.json',
+  TSCONFIG: 'tsconfig.json',
   IS_DEV: import.meta.env.DEV,
   CDS_VERSION: 'latest',
   VUE_VERSION: 'latest',
-  DEFAULT_THEME: 'cds'
+  TYPESCRIPT_VERSION: 'latest',
+  DEFAULT_THEME: 'cdsLight',
+  LEGACY_VERSION: '3.0.0-beta',
+  AUTO_SAVE_KEY: 'cds-auto-save-state',
+  RELOAD_LANGUAGE_TOOLS_DELAY: 300
 };
