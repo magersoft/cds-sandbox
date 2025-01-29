@@ -12,7 +12,7 @@ export default {
   TYPESCRIPT_VERSION: 'latest',
   DEFAULT_THEME: 'cdsLight',
   LEGACY_DEFAULT_THEME: 'cds',
-  LEGACY_VERSIONS: ['3.0.0-beta', 'latest'], // @todo remove latest after release
+  LEGACY_VERSIONS: ['3.0.0-beta'],
   THEME_LIST: ['cdsLight', 'cdsDark', 'b2bLight', 'b2bDark'],
   LEGACY_THEME_LIST: ['cds', 'b2b', 'dark', 'promo'],
   AUTO_SAVE_KEY: 'cds-auto-save-state',
