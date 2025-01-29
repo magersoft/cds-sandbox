@@ -16,6 +16,7 @@ export default defineConfig(() => {
   const port = Number(process.env.PORT) || 3001;
 
   return {
+    base: './',
     server: {
       https: true,
       host: true,
