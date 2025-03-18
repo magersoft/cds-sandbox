@@ -30,5 +30,12 @@ export function loadStyle() {
     link.addEventListener('load', resolve);
     link.addEventListener('error', reject);
     document.body.append(link);
+
+    const illustrationLink = document.createElement('link');
+    illustrationLink.rel = 'stylesheet';
+    illustrationLink.href = '#ILLUSTRATIONS_STYLE#';
+    illustrationLink.addEventListener('load', resolve);
+    illustrationLink.addEventListener('error', reject);
+    document.body.append(illustrationLink);
   });
 }

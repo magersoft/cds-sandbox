@@ -82,7 +82,10 @@ export const useStore = (initial: IInitial) => {
     const style = stylesSource
       ? stylesSource.replace('#VERSION#', version)
       : getCdnLink('@central-design-system/components', version, '/dist/cds.css');
-    return CdsSetupTemplate.replace('#STYLE#', style).replace('#THEME#', unref(theme));
+
+    const illustrationsStyle = stylesSource ? stylesSource.replace('#VERSION#', version) : getCdnLink('@central-design-system/illustrations', version, '/dist/cds-illustrations.css');
+
+    return CdsSetupTemplate.replace('#STYLE#', style).replace('#ILLUSTRATIONS_STYLE#', illustrationsStyle).replace('#THEME#', unref(theme));
   }
 
   async function setVueVersion(version: string): Promise<void> {
