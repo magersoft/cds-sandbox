@@ -13,7 +13,7 @@ export default {
   DEFAULT_THEME: 'cdsLight',
   LEGACY_DEFAULT_THEME: 'cds',
   LEGACY_VERSIONS: ['3.0.0-beta'],
-  THEME_LIST: ['cdsLight', 'cdsDark', 'b2bLight', 'b2bDark'],
+  THEME_LIST: ['cdsLight', 'cdsDark', 'b2bLight', 'b2bDark', 'promoLight', 'promoDark'],
   LEGACY_THEME_LIST: ['cds', 'b2b', 'dark', 'promo'],
   AUTO_SAVE_KEY: 'cds-auto-save-state',
   RELOAD_LANGUAGE_TOOLS_DELAY: 300
