@@ -5,17 +5,45 @@ import { Repl } from '@vue/repl';
 import { ref } from 'vue';
 import config from '@/config';
 import { AppHeader } from '@/components';
+import { useShortLink } from '@/composable/shortLink';
 
 const loading = ref(true);
+const shortId = new URLSearchParams(location.search).get('s') || undefined;
+
+const serializedState = ref<string>(location.hash.slice(1));
 
 const store = useStore({
-  serializedState: location.hash.slice(1),
+  serializedState: unref(serializedState),
   initialized() {
+    if (!shortId) {
       loading.value = false;
+    }
   },
 });
 
 console.log('Store:', store);
+
+const { getShortLink } = useShortLink();
+
+onMounted(async () => {
+  if (!shortId) return;
+
+  loading.value = true;
+  try {
+    const serializedStateFromServer = await getShortLink(shortId);
+
+    if (typeof serializedStateFromServer === 'string' && serializedStateFromServer.length > 0) {
+      serializedState.value = serializedStateFromServer;
+      history.replaceState({}, '', `${location.origin}${location.pathname}#${serializedStateFromServer}`);
+
+      window.location.reload();
+    } else {
+      loading.value = false;
+    }
+  } catch (error) {
+    console.error('Failed to fetch short link:', error);
+  }
+})
 
 const autoSave = ref(getAutoSaveState());
 watch(autoSave, setAutoSaveState);

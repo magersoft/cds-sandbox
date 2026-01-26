@@ -1,4 +1,5 @@
 export interface IInitial {
+  shortId?: string;
   serializedState?: string;
   initialized?: () => void;
 }

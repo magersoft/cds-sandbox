@@ -11,6 +11,7 @@ import type { ComputedRef } from 'vue';
 import type { TVersionKey } from '@/composable/store.d';
 import config from '@/config';
 import { useTheme } from '@central-design-system/components';
+import { useShortLink } from '@/composable/shortLink';
 
 const appVersion = import.meta.env.APP_VERSION;
 const replVersion = import.meta.env.REPL_VERSION;
@@ -68,10 +69,62 @@ async function handleChangeTheme(theme: string) {
   await store.setTheme(theme);
 }
 
-async function handleCopyLink() {
-  await navigator.clipboard.writeText(location.href);
+const { createShortLink, updateShortLink } = useShortLink();
+
+const showSharedLinkDialog = ref(false);
+const sharedLink = ref<string>('');
+const originalHash = ref('');
+const isPermanentLink = ref(false);
+const isLoadingShortLink = ref(false);
+
+async function handleShareLink() {
+  isLoadingShortLink.value = true;
+
+  try {
+    if (!unref(sharedLink)) {
+      const shortId = await createShortLink(location.hash.slice(1));
+      sharedLink.value = `${location.origin}${location.pathname}?s=${shortId}`
+
+      originalHash.value = location.hash.slice(1);
+    } else {
+      // if the state has changed, create a new short link
+      if (originalHash.value !== location.hash.slice(1)) {
+        const shortId = await createShortLink(location.hash.slice(1));
+        sharedLink.value = `${location.origin}${location.pathname}?s=${shortId}`
+
+        originalHash.value = location.hash.slice(1);
+      }
+    }
+
+    showSharedLinkDialog.value = true;
+
+    await handleCopyLink(unref(sharedLink));
+  } catch (err) {
+    console.error('Failed to create short link:', err);
+    addNotification('Failed to create short link. Full URL has been copied to clipboard instead.', 'error');
+    await handleCopyLink(location.href);
+  }
+
+  isLoadingShortLink.value = false;
+}
+
+async function handleCopyLink(link: string) {
+  await navigator.clipboard.writeText(link);
   addNotification('URL has been copied to clipboard.');
 }
+
+watch(() => unref(isPermanentLink), async (value) => {
+  if (unref(sharedLink)) {
+    isLoadingShortLink.value = true;
+    const shortId = unref(sharedLink).split('s=')[1];
+
+    await updateShortLink(shortId, value);
+
+    addNotification('Link has been updated to ' + (value ? 'permanent' : 'temporary') + ' link.');
+
+    isLoadingShortLink.value = false;
+  }
+})
 
 function handlePrettier() {
   usePrettier(store);
@@ -91,13 +144,13 @@ function handleToggleTheme() {
 
 const notifications = reactive([]);
 
-function addNotification(text: string) {
+function addNotification(text: string, status = 'success') {
   const id = Date.now();
 
   const newNotification = {
     id,
     modelValue: true,
-    status: 'success',
+    status,
     text,
     variant: 'compact',
     location: 'bottom',
@@ -179,7 +232,7 @@ function addNotification(text: string) {
         </div>
       </div>
       <div class="actions">
-        <cds-functional-button title="Copy URL" icon="copy" @click="handleCopyLink" />
+        <cds-functional-button title="Share URL" icon="external" :loading="isLoadingShortLink" @click="handleShareLink" />
         <cds-functional-button title="Change Sandbox Theme" :icon="dark ? 'star-fill' : 'star'" @click="handleToggleTheme" />
 
         <cds-menu :close-on-content-click="false" width="190" transition="scale-transition">
@@ -194,6 +247,29 @@ function addNotification(text: string) {
         </cds-menu>
       </div>
     </div>
+
+    <cds-modal v-model="showSharedLinkDialog" dismiss-btn>
+      <div class="cds-flex cds-justify-between cds-item-center">
+        <h5 class="cds-mb-m">
+          Your shared link is ready and copied to clipboard!
+        </h5>
+        <cds-functional-button icon="remove" @click="showSharedLinkDialog = false" />
+      </div>
+
+      <cds-text-input
+        v-model="sharedLink"
+        placeholder="Shared Link"
+        prepend-inner-icon="link"
+        readonly
+        :loading="isLoadingShortLink"
+        description="That link will expire in 7 days."
+      >
+        <template #append-inner>
+          <cds-functional-button icon="copy" @click="() => handleCopyLink(sharedLink)" />
+        </template>
+      </cds-text-input>
+      <cds-toggle v-model="isPermanentLink" :readonly="isLoadingShortLink" label="Permanent link" />
+    </cds-modal>
 
     <cds-notification-alert
       v-for="notification in notifications"

@@ -1,6 +1,13 @@
 import { reactive, ref, unref, watch, watchEffect } from 'vue';
 import { File, compileFile, mergeImportMap, useStore as useReplStore } from '@vue/repl';
-import { atou, genCompilerSfcLink, generateImportMap, getCdnLink, utoa } from '@/utils';
+import {
+  atou,
+  compressToUrlSafeString,
+  decompressFromUrlSafeString,
+  genCompilerSfcLink,
+  generateImportMap,
+  getCdnLink,
+} from '@/utils';
 import { objectOmit, useStorage } from '@vueuse/core';
 import config from '@/config';
 
@@ -137,10 +144,20 @@ export const useStore = (initial: IInitial) => {
   function serialize(): string {
     const state: TSerializeState = { ...store.getFiles() };
     state._o = userOptions;
-    return utoa(JSON.stringify(state));
+
+    return compressToUrlSafeString(JSON.stringify(state));
   }
 
   function deserialize(str: string): TSerializeState {
+    const decompressed = decompressFromUrlSafeString(str);
+    if (decompressed != null) {
+      try {
+        return JSON.parse(decompressed);
+      } catch (e) {
+        return JSON.parse(atou(str));
+      }
+    }
+
     return JSON.parse(atou(str));
   }
 
