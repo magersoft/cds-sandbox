@@ -1,4 +1,4 @@
-import { gte } from 'semver'
+import { gte, lt } from 'semver'
 
 import type { TVersions } from '@/composable/store.d';
 import type { MaybeRef } from '@vueuse/core';
@@ -118,5 +118,7 @@ export const getSupportedTSVersions = () => {
 
 export const getSupportedCdsVersions = () => {
   const versions = getVersions('@central-design-system/components');
-  return computed(() => unref(versions).filter((version) => gte(version, '3.0.0-beta.0')));
+  return computed(() =>
+    unref(versions).filter((version) => gte(version, '3.0.0-beta.0') && lt(version, '4.0.0-0'))
+  );
 };
